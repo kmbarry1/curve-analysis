@@ -68,6 +68,9 @@ class StableSwap:
         D0 = N * gmean(xp)
         return newton(f, D0, fprime=fp)
 
+    def get_D(self):
+        return self.calc_D(self.A, self.balances)
+
     # calculates the new value of xp[j] taking A, D, and all other xp values as given
     def calc_y(self, A, xp, D, j):
         N = len(xp)
@@ -134,3 +137,19 @@ class StableSwap:
     def get_virtual_price(self):
         D = self.calc_D(self.A, self.balances)
         return D / self.supply
+
+    # spot price of asset j in terms of i
+    def get_relative_price(self, i, j):
+        return self.calc_relative_price(i, j, self.A, self.D, self.balances)
+
+    def calc_relative_price(self, i, j, A, D, xp):
+        N = len(xp)
+        assert(i < N)
+        assert(j < N)
+        NN = N**N
+        DN1 = D**(N+1)
+        prod = 1.
+        for i in range(N):
+            prod *= xp[i]
+        x = DN1 / prod
+        return (A*NN + x/(NN*xp[j])) / (A*NN + x/(NN*xp[i]))
